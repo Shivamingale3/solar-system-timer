@@ -15,6 +15,8 @@ import { createGasGiantTexture, createRockyTexture } from "@/lib/textures";
 import Sun from "./Sun";
 import Planet from "./Planet";
 import Ring from "./Ring";
+import Moon from "./Moon";
+import AsteroidBelt from "./AsteroidBelt";
 import OrbitPath from "./OrbitPath";
 
 // Centralized Planet Config for shared logic
@@ -281,6 +283,7 @@ export default function Scene() {
         <Environment preset="city" />
         <group>
           {(!focusedPlanetId || status === "idle") && <Sun />}
+          {(!focusedPlanetId || status === "idle") && <AsteroidBelt />}
 
           <Suspense fallback={null}>
             {/* Planets & Paths */}
@@ -318,6 +321,7 @@ export default function Scene() {
                         rotation={[Math.PI / 2, 0, 0]}
                       />
                     )}
+                    {key === "earth" && <Moon />}
                   </Planet>
                 </group>
               );
