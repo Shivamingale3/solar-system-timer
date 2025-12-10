@@ -18,6 +18,17 @@ Go to [Google AdSense](https://adsense.google.com/) and sign up with your Google
 - Enter your deployed URL (e.g., `https://cosmic-timer.vercel.app`).
 - You will get a verification snippet. You generally put this in your `src/app/layout.tsx` `<head>` (or use `next/script`).
 
+### 2a. The "ads.txt" File (Critical)
+
+AdSense requires an `ads.txt` file to prove you authorize them to sell ads on your site.
+
+1.  I have created a `public/ads.txt` file for you.
+2.  Go to AdSense > **Sites** > Click your site.
+3.  Copy your unique **Publisher ID** (e.g., `pub-1234567890123456`).
+4.  Open `public/ads.txt` in this project.
+5.  Replace `pub-0000000000000000` with your actual ID.
+6.  Commit and deploy. Google will find it at `yourdomain.com/ads.txt`.
+
 > [!IMPORTANT] > **Domain Issue?**
 > If you are trying to add a subdomain like `timer.shivamingale.com`, Google AdSense usually requires you to add the **root domain** (`shivamingale.com`) first.
 >
