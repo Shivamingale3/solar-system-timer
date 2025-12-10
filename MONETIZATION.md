@@ -10,6 +10,9 @@ Google AdSense is the standard for web monetization. It automatically shows ads 
 
 ### 1. Sign Up
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2454134193807389"
+     crossorigin="anonymous"></script>
+
 Go to [Google AdSense](https://adsense.google.com/) and sign up with your Google account.
 
 ### 2. Add Your Site
