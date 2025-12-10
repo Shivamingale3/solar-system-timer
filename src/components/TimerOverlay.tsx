@@ -93,7 +93,7 @@ export default function TimerOverlay() {
               disabled={duration === 0}
               className="group relative px-8 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               <span className="flex items-center gap-2 uppercase tracking-widest text-sm font-bold">
                 <Play size={16} fill="currentColor" /> Ignite
               </span>
