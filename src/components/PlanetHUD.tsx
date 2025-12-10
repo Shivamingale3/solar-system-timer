@@ -1,0 +1,110 @@
+"use client";
+
+import { Html } from "@react-three/drei";
+import { motion } from "framer-motion";
+
+interface PlanetData {
+  name: string;
+  radius: string;
+  distance: string;
+  temp: string;
+  desc: string;
+}
+
+const INFO: Record<string, PlanetData> = {
+  mercury: {
+    name: "Mercury",
+    radius: "2,439 km",
+    distance: "0.39 AU",
+    temp: "167°C",
+    desc: "The swiftest planet.",
+  },
+  venus: {
+    name: "Venus",
+    radius: "6,051 km",
+    distance: "0.72 AU",
+    temp: "464°C",
+    desc: "A hot, toxic world.",
+  },
+  earth: {
+    name: "Earth",
+    radius: "6,371 km",
+    distance: "1.00 AU",
+    temp: "15°C",
+    desc: "Our home.",
+  },
+  mars: {
+    name: "Mars",
+    radius: "3,389 km",
+    distance: "1.52 AU",
+    temp: "-65°C",
+    desc: "The Red Planet.",
+  },
+  jupiter: {
+    name: "Jupiter",
+    radius: "69,911 km",
+    distance: "5.20 AU",
+    temp: "-110°C",
+    desc: "The Gas Giant king.",
+  },
+  saturn: {
+    name: "Saturn",
+    radius: "58,232 km",
+    distance: "9.58 AU",
+    temp: "-140°C",
+    desc: "The Jewel of the Solar System.",
+  },
+  uranus: {
+    name: "Uranus",
+    radius: "25,362 km",
+    distance: "19.22 AU",
+    temp: "-195°C",
+    desc: "The Ice Giant.",
+  },
+  neptune: {
+    name: "Neptune",
+    radius: "24,622 km",
+    distance: "30.05 AU",
+    temp: "-200°C",
+    desc: "The Windy Planet.",
+  },
+};
+
+export default function PlanetHUD({ id }: { id: string }) {
+  const data = INFO[id];
+  if (!data) return null;
+
+  return (
+    <Html
+      as="div"
+      center
+      position={[0, -2, 0]} // Float below the planet
+      style={{ pointerEvents: "none" }} // Don't block clicks
+      zIndexRange={[100, 0]}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="flex flex-col gap-2 w-64 p-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-2xl"
+      >
+        <h2 className="text-2xl font-thin tracking-widest uppercase border-b border-white/20 pb-2 mb-1">
+          {data.name}
+        </h2>
+        <p className="text-xs text-white/70 italic mb-2">{data.desc}</p>
+
+        <div className="grid grid-cols-2 gap-y-2 text-xs">
+          <div className="text-white/50">Radius</div>
+          <div className="font-mono text-right">{data.radius}</div>
+
+          <div className="text-white/50">Dist. Sun</div>
+          <div className="font-mono text-right">{data.distance}</div>
+
+          <div className="text-white/50">Avg. Temp</div>
+          <div className="font-mono text-right">{data.temp}</div>
+        </div>
+      </motion.div>
+    </Html>
+  );
+}

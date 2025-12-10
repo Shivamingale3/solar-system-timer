@@ -18,6 +18,7 @@ import Ring from "./Ring";
 import Moon from "./Moon";
 import AsteroidBelt from "./AsteroidBelt";
 import OrbitPath from "./OrbitPath";
+import PlanetHUD from "./PlanetHUD";
 
 // Centralized Planet Config for shared logic
 interface PlanetConfig {
@@ -323,6 +324,7 @@ export default function Scene() {
                       />
                     )}
                     {key === "earth" && <Moon />}
+                    {isFocused && <PlanetHUD id={key} />}
                   </Planet>
                 </group>
               );
