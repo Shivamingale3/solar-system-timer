@@ -160,17 +160,34 @@ function CameraController() {
       const px = Math.sin(angle) * radius;
       const pz = Math.cos(angle) * radius;
 
+      // Apply Group Rotation (Inclination) to Planet Position
+      const planetPos = new THREE.Vector3(px, 0, pz);
+      if (data?.groupRotation) {
+        const euler = new THREE.Euler(...data.groupRotation);
+        planetPos.applyEuler(euler);
+      }
+
       // Target: Based on SIZE not RADIUS
       // We want to be close. Distance ~ size * 2.5
       const dist = (data?.size || 1) * 3.0;
 
-      // Offset camera to be "in front" or "above"
-      // Let's place camera at same angle but further out + slight Y up
-      const camX = Math.sin(angle) * (radius + dist);
-      const camZ = Math.cos(angle) * (radius + dist);
+      // Camera Offset relative to planet
+      // We want to look at the planet from a consistent angle relative to its orbit
+      // Let's position the camera *radially outward* from the sun, but close to the planet
 
-      targetPos = new THREE.Vector3(camX, (data?.size || 0.5) * 0.5, camZ);
-      lookAtPos = new THREE.Vector3(px, 0, pz);
+      // Vector from Sun to Planet (normalized)
+      const toPlanet = planetPos.clone().normalize();
+
+      // Desired Camera Position: Planet Pos + (Direction * Distance)
+      // We also add a slight Y offset for a "top-down" look? No, user wants "rotating on axis behind timer".
+      // A flat view is better.
+      const camPos = planetPos.clone().add(toPlanet.multiplyScalar(dist));
+
+      // Lift camera slightly y so we aren't perfectly equatorial
+      camPos.y += (data?.size || 0.5) * 0.5;
+
+      targetPos = camPos;
+      lookAtPos = planetPos;
     }
 
     camera.position.lerp(targetPos, delta * 2);
