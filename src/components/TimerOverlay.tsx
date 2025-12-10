@@ -59,7 +59,7 @@ export default function TimerOverlay() {
     <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-10 text-white font-mono">
       {/* Title / Header */}
       <h1 className="absolute top-8 text-xs md:text-sm tracking-[0.3em] uppercase opacity-50">
-        Solar System Timer
+        Cosmic Timer
       </h1>
 
       {/* IDLE STATE: Inputs */}
