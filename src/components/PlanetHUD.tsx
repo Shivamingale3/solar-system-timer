@@ -70,16 +70,20 @@ const INFO: Record<string, PlanetData> = {
   },
 };
 
-export default function PlanetHUD({ id }: { id: string }) {
+export default function PlanetHUD({ id, size }: { id: string; size: number }) {
   const data = INFO[id];
   if (!data) return null;
+
+  // Dynamic offset based on planet size
+  // Planet extends to -size. We want a bit of gap.
+  const yOffset = -(size * 1.2 + 0.2);
 
   return (
     <Html
       as="div"
       center
-      position={[0, -2, 0]} // Float below the planet
-      style={{ pointerEvents: "none" }} // Don't block clicks
+      position={[0, yOffset, 0]}
+      style={{ pointerEvents: "none" }}
       zIndexRange={[100, 0]}
     >
       <motion.div

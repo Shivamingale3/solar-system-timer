@@ -324,7 +324,7 @@ export default function Scene() {
                       />
                     )}
                     {key === "earth" && <Moon />}
-                    {isFocused && <PlanetHUD id={key} />}
+                    {isFocused && <PlanetHUD id={key} size={data.size} />}
                   </Planet>
                 </group>
               );
