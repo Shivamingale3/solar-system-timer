@@ -21,6 +21,7 @@ import OrbitPath from "./OrbitPath";
 import PlanetHUD from "./PlanetHUD";
 import ShootingStars from "./ShootingStars";
 import Supernova from "./Supernova";
+import Spacecraft from "./Spacecraft";
 
 // Centralized Planet Config for shared logic
 interface PlanetConfig {
@@ -328,6 +329,7 @@ export default function Scene() {
                       />
                     )}
                     {key === "earth" && <Moon />}
+                    {key === "earth" && <Spacecraft />}
                     {isFocused && <PlanetHUD id={key} size={data.size} />}
                   </Planet>
                 </group>

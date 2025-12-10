@@ -72,8 +72,8 @@ export default function ShootingStars() {
 
   useFrame((state) => {
     // Randomly spawn if not active
-    if (!active && Math.random() < 0.005) {
-      // ~1% chance per frame? 0.005 is roughly once every 3-4 seconds at 60fps
+    // Increased frequency from 0.005 to 0.02 (approx once per second or two)
+    if (!active && Math.random() < 0.03) {
       setActive(true);
     }
   });
