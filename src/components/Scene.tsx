@@ -170,8 +170,9 @@ function CameraController() {
       }
 
       // Target: Based on SIZE not RADIUS
-      // We want to be close. Distance ~ size * 2.5
-      const dist = (data?.size || 1) * 3.0;
+      // We want to be close but see potential moons (Moon is at ~1.5 units from Earth)
+      // distance = size * 5 gives enough context.
+      const dist = (data?.size || 1) * 5.0;
 
       // Camera Offset relative to planet
       // We want to look at the planet from a consistent angle relative to its orbit
