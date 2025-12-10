@@ -18,6 +18,13 @@ Go to [Google AdSense](https://adsense.google.com/) and sign up with your Google
 - Enter your deployed URL (e.g., `https://cosmic-timer.vercel.app`).
 - You will get a verification snippet. You generally put this in your `src/app/layout.tsx` `<head>` (or use `next/script`).
 
+> [!IMPORTANT] > **Domain Issue?**
+> If you are trying to add a subdomain like `timer.shivamingale.com`, Google AdSense usually requires you to add the **root domain** (`shivamingale.com`) first.
+>
+> 1. Add `shivamingale.com` to "Sites".
+> 2. Once verified, subdomains are often automatically handled or can be added as "Custom channels" or sites depending on your account.
+> 3. If you don't own the root domain, you might need to use a platform that allows subdomains (like some hosting provider integrations), but generally, owning the root is required.
+
 ### 3. Create an Ad Unit
 
 - Go to **Ads** > **By ad unit**.
