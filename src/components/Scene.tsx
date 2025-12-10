@@ -20,6 +20,7 @@ import AsteroidBelt from "./AsteroidBelt";
 import OrbitPath from "./OrbitPath";
 import PlanetHUD from "./PlanetHUD";
 import ShootingStars from "./ShootingStars";
+import Supernova from "./Supernova";
 
 // Centralized Planet Config for shared logic
 interface PlanetConfig {
@@ -288,6 +289,7 @@ export default function Scene() {
           {(!focusedPlanetId || status === "idle") && <Sun />}
           {(!focusedPlanetId || status === "idle") && <AsteroidBelt />}
           <ShootingStars />
+          <Supernova />
 
           <Suspense fallback={null}>
             {/* Planets & Paths */}
