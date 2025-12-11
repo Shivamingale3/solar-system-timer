@@ -7,11 +7,12 @@ import * as THREE from "three";
 
 export default function Moon() {
   const meshRef = useRef<THREE.Mesh>(null!);
-  // const texture = useTexture("/textures/moon.jpg"); // We can add this texture later or rely on color
+  const texture = useTexture("/textures/moon.jpg");
 
   useFrame((state, delta) => {
     if (meshRef.current) {
       // Only if we need independent rotation
+      // meshRef.current.rotation.y += delta * 0.1;
     }
   });
 
@@ -22,8 +23,13 @@ export default function Moon() {
     // For now, let's just place it.
     <group rotation={[0, 0, Math.PI / 8]}>
       {/* Inclined moon orbit */}
-      <Sphere args={[0.12, 32, 32]} position={[1.5, 0, 0]}>
-        <meshStandardMaterial color="#dddddd" roughness={0.8} metalness={0.1} />
+      <Sphere ref={meshRef} args={[0.12, 32, 32]} position={[1.5, 0, 0]}>
+        <meshStandardMaterial
+          map={texture}
+          roughness={0.8}
+          metalness={0.1}
+          color="#ffffff"
+        />
       </Sphere>
     </group>
   );

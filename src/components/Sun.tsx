@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Sphere, MeshDistortMaterial } from "@react-three/drei";
+import { Sphere, useTexture } from "@react-three/drei";
 import { useTimerStore } from "@/lib/store";
 import * as THREE from "three";
 
@@ -30,17 +30,9 @@ export default function Sun() {
       <pointLight intensity={2} decay={0} distance={100} color="#ffddaa" />
       <ambientLight intensity={0.2} />
 
-      {/* Main Sun Body - procedural lava look */}
+      {/* Main Sun Body - textured */}
       <Sphere ref={meshRef} args={[1, 64, 64]} scale={2.5}>
-        <MeshDistortMaterial
-          color="#ffaa00"
-          emissive="#ff4400"
-          emissiveIntensity={1}
-          roughness={0.2}
-          metalness={0.1}
-          distort={0.15} // Reduced from 0.4 for stability
-          speed={0.5} // Slower speed
-        />
+        <meshBasicMaterial map={useTexture("/textures/sun.jpg")} color="#ffffff" />
       </Sphere>
 
       {/* Glow Halo - Inner */}
