@@ -49,7 +49,7 @@ export default function TimerOverlay() {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (status === "running") {
-      interval = setInterval(tick, 1000);
+      interval = setInterval(tick, 200);
     }
     return () => clearInterval(interval);
   }, [status, tick]);

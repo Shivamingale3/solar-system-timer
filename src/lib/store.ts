@@ -7,6 +7,7 @@ interface TimerState {
   remainingTime: number; // Remaining seconds
   status: TimerStatus;
   focusedPlanetId: string | null; // Planet ID
+  endTime: number | null; // Target end timestamp
 
   // Actions
   setDuration: (seconds: number) => void;
@@ -22,28 +23,36 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   remainingTime: 60,
   status: "idle",
   focusedPlanetId: null,
+  endTime: null,
 
   setDuration: (seconds) => set({ duration: seconds, remainingTime: seconds }),
   setFocusedPlanet: (id) => set({ focusedPlanetId: id }),
 
-  startTimer: () => set({ status: "running" }),
+  startTimer: () => {
+    const { remainingTime } = get();
+    const endTime = Date.now() + remainingTime * 1000;
+    set({ status: "running", endTime });
+  },
 
-  pauseTimer: () => set({ status: "paused" }),
+  pauseTimer: () => set({ status: "paused", endTime: null }),
 
   resetTimer: () => {
     const { duration } = get();
-    set({ remainingTime: duration, status: "idle" });
+    set({ remainingTime: duration, status: "idle", endTime: null });
   },
 
   tick: () => {
-    const { remainingTime, status, resetTimer } = get();
+    const { endTime, status } = get();
 
-    if (status !== "running") return;
+    if (status !== "running" || !endTime) return;
 
-    if (remainingTime > 0) {
-      set({ remainingTime: remainingTime - 1 });
+    const msLeft = endTime - Date.now();
+    const secondsLeft = Math.ceil(msLeft / 1000);
+
+    if (secondsLeft <= 0) {
+      set({ remainingTime: 0, status: "completed", endTime: null });
     } else {
-      set({ status: "completed" });
+      set({ remainingTime: secondsLeft });
     }
   },
 }));
