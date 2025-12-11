@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useTimerStore } from "@/lib/store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Play, RotateCcw, ZoomIn, ZoomOut, Home } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -36,6 +36,8 @@ export default function TimerOverlay() {
     triggerCameraReset,
   } = useTimerStore();
 
+  const constraintsRef = useRef(null);
+
   // Local state for inputs
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(1);
@@ -59,7 +61,10 @@ export default function TimerOverlay() {
   const { h, m, s } = formatTime(remainingTime);
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-10 text-white font-mono">
+    <div
+      ref={constraintsRef}
+      className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-10 text-white font-mono"
+    >
       {/* Title / Header */}
       <h1 className="absolute top-8 text-xs md:text-sm tracking-[0.3em] uppercase opacity-50">
         Cosmic Timer
@@ -73,7 +78,12 @@ export default function TimerOverlay() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.5 }}
-            className="pointer-events-auto bg-black/30 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6"
+            drag
+            dragConstraints={constraintsRef}
+            dragElastic={0}
+            dragMomentum={false}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="pointer-events-auto bg-black/30 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 cursor-grab active:cursor-grabbing"
           >
             <div className="flex items-center gap-4 text-center">
               <TimeInput label="Hours" value={hours} onChange={setHours} />
@@ -112,7 +122,12 @@ export default function TimerOverlay() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col items-center pointer-events-auto"
+            drag
+            dragConstraints={constraintsRef}
+            dragElastic={0}
+            dragMomentum={false}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex flex-col items-center pointer-events-auto cursor-grab active:cursor-grabbing"
           >
             {/* Main HUD Display */}
             <div className="text-6xl md:text-8xl font-thin tracking-wider flex gap-2 mix-blend-difference">
