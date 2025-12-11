@@ -46,26 +46,52 @@ export default function Sun() {
 
     // Pulse/Scale Logic
     let scale = 2.5;
+    let targetColor = new THREE.Color("#ffddaa");
+    let targetIntensity = 2.5;
+
     if (status === "running") {
       const pulse = Math.sin(time * 2) * 0.05 + 1;
       scale = 2.5 * pulse;
     } else if (status === "completed") {
-      scale = 15; // Target size, will lerp
+      scale = 300; // Supernova expansion
+      targetColor.set("#ffffff"); // Blinding white
+      targetIntensity = 50; // Blinding light
     }
 
-    // Apply Lerp to Mesh
-    meshRef.current.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.1);
+    // Apply Lerp to Mesh Scale
+    // Slower expansion for dramatic effect (0.005 when completed)
+    const lerpSpeed = status === "completed" ? 0.005 : 0.1;
+    meshRef.current.scale.lerp(
+      new THREE.Vector3(scale, scale, scale),
+      lerpSpeed
+    );
+
+    // Lerp Color if material exists
+    if (meshRef.current.material instanceof THREE.MeshBasicMaterial) {
+      meshRef.current.material.color.lerp(targetColor, 0.05);
+    }
 
     // Sync Glow with Sun Scale
     const currentScale = meshRef.current.scale.x;
-    if (glowRef.current)
+    if (glowRef.current) {
       glowRef.current.scale.set(currentScale * 6, currentScale * 6, 1);
+      // Fade out glow sprite as real sun takes over screen
+      if (status === "completed") {
+        const opacity = Math.max(0, 1 - currentScale / 100);
+        glowRef.current.material.opacity = opacity;
+      }
+    }
   });
 
   return (
     <group>
       {/* Intense Light Source */}
-      <pointLight intensity={2.5} decay={0} distance={100} color="#ffddaa" />
+      <pointLight
+        intensity={status === "completed" ? 10 : 2.5}
+        decay={0}
+        distance={status === "completed" ? 500 : 100}
+        color="#ffddaa"
+      />
       <ambientLight intensity={0.5} />
 
       {/* 1. Main Sun Body - textured */}

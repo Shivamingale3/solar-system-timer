@@ -45,8 +45,18 @@ function usePlanetLogic(
 
     if (meshRef.current) {
       meshRef.current.position.set(x, 0, z);
-      // Axis rotation
       meshRef.current.rotation.y += 0.01; // Increased speed for visibility
+
+      // HANDLING COLLAPSE: Scale down to 0 if completed
+      if (status === "completed") {
+        meshRef.current.scale.lerp(new THREE.Vector3(0, 0, 0), 0.02);
+      } else {
+        // Reset scale to 1 (relative to local scale prop) NOT quite right.
+        // The Mesh has `scale={1}` by default but inheriting from args?
+        // Actually in `TexturedPlanet`, args=[size, 64, 64]. Scale is usually 1.
+        // But wait, if I scale mesh to 0, I need to restore it to 1 when reset.
+        meshRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+      }
     }
   });
 

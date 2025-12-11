@@ -1,12 +1,14 @@
 "use client";
 
 import * as THREE from "three";
+import { useTimerStore } from "@/lib/store";
 
-interface OrbitPathProps {
-  radius: number;
-}
+export default function OrbitPath({ radius }: { radius: number }) {
+  const status = useTimerStore((state) => state.status);
 
-export default function OrbitPath({ radius }: OrbitPathProps) {
+  // Collapse: Hide orbits
+  if (status === "completed") return null;
+
   // Using a simple LineLoop geometry for a super thin, crisp line
   // "Ring" from Drei is a mesh, which can look thick.
   // Native THREE.Line with BufferGeometry is best for "hairline" orbits.
