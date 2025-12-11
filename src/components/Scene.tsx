@@ -8,7 +8,7 @@ import {
   PerspectiveCamera,
   Environment,
 } from "@react-three/drei";
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import * as THREE from "three";
 import { useTimerStore } from "@/lib/store";
 import Sun from "./Sun";
@@ -121,93 +121,106 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
 };
 
 function CameraController() {
-  const { camera, viewport, clock } = useThree();
-  const status = useTimerStore((state) => state.status);
+  const { camera, controls } = useThree() as any; // Cast to any to access controls from makeDefault
   const focusedPlanetId = useTimerStore((state) => state.focusedPlanetId);
+  const status = useTimerStore((state) => state.status);
+
+  const prevFocusRef = useRef<string | null>(null);
+  const transitionTimeRef = useRef<number>(0);
+  const isTransitioningRef = useRef<boolean>(false);
+
+  // Detect Focus Change
+  if (prevFocusRef.current !== focusedPlanetId) {
+    prevFocusRef.current = focusedPlanetId;
+    isTransitioningRef.current = true;
+    transitionTimeRef.current = 0;
+  }
 
   useFrame((state, delta) => {
-    // Responsive Distance Calculation
-    // If viewport width is small (mobile), move camera further back.
-    const isMobile = viewport.width < 10; // R3F viewport units
-    const zBase = isMobile ? 35 : 25; // Standard viewing distance
+    const time = state.clock.getElapsedTime();
 
-    // Default Targets
-    let targetPos =
-      status === "idle"
-        ? new THREE.Vector3(0, 3, isMobile ? 12 : 8)
-        : new THREE.Vector3(0, 20, zBase);
+    // 1. Determine Target Focus Position (Planet or Sun)
+    let lookAtPos = new THREE.Vector3(0, 0, 0); // Default Sun
+    let desiredDist = 40; // Default distance for overview
 
-    let lookAtPos = new THREE.Vector3(0, 0, 0);
-
-    // Override if planet is focused
-    if (focusedPlanetId && status !== "idle") {
-      const time = clock.getElapsedTime();
-      // Calculate planet position purely based on ID without ref (re-implement math)
-      // Ideally we would share this math, but duplicating for camera controller is robust
-      let radius = 0,
-        speed = 0,
-        initialAngle = 0;
-
+    if (focusedPlanetId) {
       const data = PLANET_DATA[focusedPlanetId];
       if (data) {
-        radius = data.radius;
-        speed = data.speed * 0.1; // Reduced speed
-        initialAngle = data.initialAngle;
-      } else {
-        // Fallbacks or special cases
+        let angle = data.initialAngle;
+        let radius = data.radius;
+        let speed = data.speed * 0.1;
+
+        // Calculate Planet Position (Same logic as rendering loop to stay synced)
+        if (status === "running") angle += time * speed;
+        else if (status === "completed") angle += time * speed * 2;
+
+        const px = Math.sin(angle) * radius;
+        const pz = Math.cos(angle) * radius;
+        const planetPos = new THREE.Vector3(px, 0, pz);
+
+        if (data.groupRotation) {
+          const euler = new THREE.Euler(...data.groupRotation);
+          planetPos.applyEuler(euler);
+        }
+
+        lookAtPos = planetPos;
+        desiredDist = (data.size || 1) * 5.0;
       }
-
-      let angle = initialAngle;
-      if (status === "running") angle += time * speed;
-      else if (status === "completed") angle += time * speed * 2;
-      // In SINGLE PLANET MODE, we might want to freeze orbit or just track it?
-      // User said "rotating on its own axis". Orbiting is fine if camera follows.
-
-      const px = Math.sin(angle) * radius;
-      const pz = Math.cos(angle) * radius;
-
-      // Apply Group Rotation (Inclination) to Planet Position
-      const planetPos = new THREE.Vector3(px, 0, pz);
-      if (data?.groupRotation) {
-        const euler = new THREE.Euler(...data.groupRotation);
-        planetPos.applyEuler(euler);
-      }
-
-      // Target: Based on SIZE not RADIUS
-      // We want to be close but see potential moons (Moon is at ~1.5 units from Earth)
-      // distance = size * 5 gives enough context.
-      const dist = (data?.size || 1) * 5.0;
-
-      // Camera Offset relative to planet
-      // We want to look at the planet from a consistent angle relative to its orbit
-      // Let's position the camera *radially outward* from the sun, but close to the planet
-
-      // Vector from Sun to Planet (normalized)
-      const toPlanet = planetPos.clone().normalize();
-
-      // Desired Camera Position: Planet Pos + (Direction * Distance)
-      // We also add a slight Y offset for a "top-down" look? No, user wants "rotating on axis behind timer".
-      // A flat view is better.
-      const camPos = planetPos.clone().add(toPlanet.multiplyScalar(dist));
-
-      // Lift camera slightly y so we aren't perfectly equatorial
-      camPos.y += (data?.size || 0.5) * 0.5;
-
-      targetPos = camPos;
-      lookAtPos = planetPos;
     }
 
-    camera.position.lerp(targetPos, delta * 2);
-    // Smoothly interpolate lookAt? Standard lookAt is instant.
-    // For smoothness, we can lerp a dummy target, but for now instant lookAt on lerped position is okay-ish.
-    // Better: orbit controls target requires manual update.
+    // 2. Update Controls Target (Follow the object)
+    if (controls) {
+      // Smoothly move the controls target to the new lookAtPos
+      // This allows the camera to "orbit" the moving planet
+      controls.target.lerp(lookAtPos, 0.1);
 
-    // If not using OrbitControls for this mode:
-    if (focusedPlanetId) {
-      const currentLook = new THREE.Vector3(0, 0, 0); // We'd need state to lerp lookAt
-      camera.lookAt(lookAtPos);
-    } else {
-      camera.lookAt(0, 0, 0);
+      // Update controls to apply the new target and any user inputs
+      controls.update();
+    }
+
+    // 3. Handle One-Time Transition (Fly-to)
+    // When focus changes, we force-move the camera for a set time, then release control
+    if (isTransitioningRef.current) {
+      transitionTimeRef.current += delta;
+
+      // Calculate Ideal Camera Position for the Fly-to
+      // We want to be at 'desiredDist' away from the target
+      // Preserving current direction if possible, or defaulting to a side view
+
+      // Current vector from target to camera
+      const offset = camera.position.clone().sub(lookAtPos);
+
+      // If we are too close or too far, or just starting, we normalize to desired distance
+      // But we want to animate INTO this position.
+
+      let targetCamPos: THREE.Vector3;
+
+      if (focusedPlanetId) {
+        // Fly to a nice side view of the planet
+        // We can offset by [0, data.size, desiredDist] relative to planet
+        // But simplest is just zooming in along current vector or a default vector
+        const viewDir = offset.clone().normalize();
+        if (viewDir.lengthSq() < 0.1) viewDir.set(0, 0.5, 1).normalize(); // Handle zero length
+
+        targetCamPos = lookAtPos
+          .clone()
+          .add(viewDir.multiplyScalar(desiredDist));
+      } else {
+        // Fly back to Overview
+        targetCamPos = new THREE.Vector3(0, 30, 40);
+      }
+
+      // Lerp Camera Position
+      // Use a fast lerp for responsiveness, but the transition flag holds it for a bit
+      camera.position.lerp(targetCamPos, delta * 3.0);
+
+      // End transition after enough time or if close enough
+      if (
+        transitionTimeRef.current > 1.5 ||
+        camera.position.distanceTo(targetCamPos) < 0.5
+      ) {
+        isTransitioningRef.current = false;
+      }
     }
   });
 
@@ -232,13 +245,14 @@ export default function Scene() {
         <PerspectiveCamera makeDefault position={[0, 3, 8]} fov={45} />
         <CameraController />
         <OrbitControls
-          enablePan={false}
+          makeDefault
+          enablePan={true} // Allow panning in free view
           enableZoom={true}
-          maxDistance={60}
-          minDistance={5}
+          maxDistance={100} // Increase max distance for freedom
+          minDistance={2} // Allow close inspection
           autoRotate={status === "idle" && !focusedPlanetId}
           autoRotateSpeed={0.5}
-          enabled={!focusedPlanetId} // Disable controls when focused to allow CameraController to track cleanly
+          // Always enabled now
         />
         {/* Ambient surroundings - Deep Space */}
         <color attach="background" args={["#000000"]} />
