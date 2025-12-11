@@ -330,7 +330,8 @@ export default function Scene() {
           {(!focusedPlanetId ||
             focusedPlanetId === "sun" ||
             status === "idle") && <Sun />}
-          {(!focusedPlanetId || status === "idle") && <AsteroidBelt />}
+          {status !== "completed" &&
+            (!focusedPlanetId || status === "idle") && <AsteroidBelt />}
           <ShootingStars />
           <Supernova />
 
