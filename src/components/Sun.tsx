@@ -27,7 +27,15 @@ const AtmosphereMaterial = shaderMaterial(
     uniform float intensity;
     varying vec3 vNormal;
     void main() {
-      float glow = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
+      // Standard Fresnel: 1.0 - dot(view, normal)
+      // vNormal is in View Space, so (0,0,1) is roughly "towards camera"
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      float viewDot = dot(vNormal, viewDir);
+      float glow = pow(0.7 - viewDot, 2.0); 
+      // Using 0.7 offset to pull the glow slightly inward, adjusting power for falloff
+      // Clamp to minimal 0 to avoid artifacts
+      glow = max(0.0, glow);
+      
       gl_FragColor = vec4(color, glow * intensity);
     }
   `
@@ -52,8 +60,8 @@ function createGlowTexture() {
   if (context) {
     const gradient = context.createRadialGradient(64, 64, 0, 64, 64, 64);
     gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-    gradient.addColorStop(0.2, "rgba(255, 240, 200, 0.8)");
-    gradient.addColorStop(0.5, "rgba(255, 150, 50, 0.4)");
+    gradient.addColorStop(0.2, "rgba(255, 200, 100, 0.5)"); // More transparent for softer shine
+    gradient.addColorStop(0.5, "rgba(255, 100, 0, 0.2)");
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     context.fillStyle = gradient;
@@ -88,11 +96,17 @@ export default function Sun() {
 
     // Apply Lerp to Mesh
     meshRef.current.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.1);
-    
+
     // Sync Glow/Atmosphere with Sun Scale
     const currentScale = meshRef.current.scale.x;
-    if (glowRef.current) glowRef.current.scale.set(currentScale * 5, currentScale * 5, 1);
-    if (atmosphereRef.current) atmosphereRef.current.scale.set(currentScale * 1.2, currentScale * 1.2, currentScale * 1.2);
+    if (glowRef.current)
+      glowRef.current.scale.set(currentScale * 6, currentScale * 6, 1);
+    if (atmosphereRef.current)
+      atmosphereRef.current.scale.set(
+        currentScale * 1.3,
+        currentScale * 1.3,
+        currentScale * 1.3
+      );
   });
 
   return (
@@ -111,10 +125,11 @@ export default function Sun() {
       <Sphere ref={atmosphereRef} args={[1, 64, 64]} scale={3.0}>
         <atmosphereMaterial
           transparent
+          depthWrite={false}
           blending={THREE.AdditiveBlending}
-          side={THREE.BackSide}
+          side={THREE.FrontSide}
           color={new THREE.Color("#ff6600")}
-          intensity={4.0}
+          intensity={2.0}
         />
       </Sphere>
 
