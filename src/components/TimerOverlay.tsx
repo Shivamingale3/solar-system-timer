@@ -150,7 +150,7 @@ export default function TimerOverlay() {
       <AdSpace />
 
       {/* Manual Camera Controls */}
-      <div className="absolute  bottom-8 right-8 flex flex-col gap-2 pointer-events-auto">
+      <div className="absolute bottom-8 left-8 flex flex-col gap-2 pointer-events-auto">
         <button
           onClick={triggerCameraReset}
           className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full transition-all active:scale-95 mb-2"
@@ -177,7 +177,41 @@ export default function TimerOverlay() {
           <ZoomOut size={24} />
         </button>
       </div>
+
+      {/* Interaction Hints */}
+      <InteractionHints />
     </div>
+  );
+}
+
+function InteractionHints() {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(false), 8000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 1 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-6 py-2 rounded-full border border-white/10 pointer-events-none"
+        >
+          <p className="text-white/80 text-xs uppercase tracking-widest flex items-center gap-4">
+            <span>Scroll to Zoom</span>
+            <span className="w-1 h-1 bg-white/30 rounded-full" />
+            <span>Drag to Rotate</span>
+            <span className="w-1 h-1 bg-white/30 rounded-full" />
+            <span>Click Planets</span>
+          </p>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
