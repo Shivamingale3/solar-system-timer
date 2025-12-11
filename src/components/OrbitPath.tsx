@@ -2,9 +2,44 @@
 
 import * as THREE from "three";
 import { useTimerStore } from "@/lib/store";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 
 export default function OrbitPath({ radius }: { radius: number }) {
   const status = useTimerStore((state) => state.status);
+  const lineRef = useRef<THREE.LineLoop>(null!);
+  const prevStatus = useRef(status);
+  const formationTime = useRef(100);
+
+  // Big Bang Expansion
+  useFrame((state, delta) => {
+    // Detect Start
+    if (prevStatus.current === "idle" && status === "running") {
+      formationTime.current = 0;
+    }
+    prevStatus.current = status;
+
+    if (status === "running" && formationTime.current < 10) {
+      formationTime.current += delta;
+    }
+
+    // Reuse delay logic for consistency
+    const delay = radius * 0.05;
+    const progress = Math.max(
+      0,
+      Math.min(1, (formationTime.current - delay) / 1.5)
+    );
+    // Ease out quart
+    const ease = 1 - Math.pow(1 - progress, 4);
+
+    if (lineRef.current) {
+      if (status === "running") {
+        lineRef.current.scale.setScalar(ease);
+      } else {
+        lineRef.current.scale.setScalar(1);
+      }
+    }
+  });
 
   // Collapse: Hide orbits
   if (status === "completed") return null;
@@ -34,5 +69,5 @@ export default function OrbitPath({ radius }: { radius: number }) {
     })
   );
 
-  return <primitive object={line} />;
+  return <primitive object={line} ref={lineRef} />;
 }

@@ -41,15 +41,49 @@ export default function Sun() {
   // Generate Sprite Texture once
   const glowTexture = useMemo(() => createGlowTexture(), []);
 
+  // State tracking for animations
+  const prevStatus = useRef(status);
+  const flashTime = useRef(100);
+
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
+
+    // Detect Start (Big Bang Ignition)
+    if (prevStatus.current === "idle" && status === "running") {
+      flashTime.current = 0;
+    }
+    prevStatus.current = status;
+
+    if (status === "running" && flashTime.current < 10) {
+      flashTime.current += 1 / 60; // Approximate delta
+    }
 
     // Pulse/Scale Logic
     let scale = 2.5;
     let targetColor = new THREE.Color("#ffddaa");
     let targetIntensity = 2.5;
 
-    if (status === "running") {
+    // --- BIG BANG IGNITION ---
+    if (status === "running" && flashTime.current < 2.0) {
+      // First 2 seconds: IGNITION
+      // 0 - 0.5s: Expansion to 5 (Flash)
+      // 0.5 - 2.0s: Settle to 2.5
+      const progress = flashTime.current;
+
+      if (progress < 0.5) {
+        // Explode out
+        const t = progress / 0.5;
+        scale = THREE.MathUtils.lerp(0.1, 6, t); // Start small, explode huge
+        targetIntensity = THREE.MathUtils.lerp(0, 10, t);
+        targetColor.set("#ffffff");
+      } else {
+        // Settle down
+        const t = (progress - 0.5) / 1.5;
+        scale = THREE.MathUtils.lerp(6, 2.5, t); // Shrink back to normal
+        targetIntensity = THREE.MathUtils.lerp(10, 2.5, t);
+        targetColor.lerp(new THREE.Color("#ffddaa"), t);
+      }
+    } else if (status === "running") {
       const pulse = Math.sin(time * 2) * 0.05 + 1;
       scale = 2.5 * pulse;
     } else if (status === "completed") {
@@ -59,8 +93,11 @@ export default function Sun() {
     }
 
     // Apply Lerp to Mesh Scale
-    // Slower expansion for dramatic effect (0.005 when completed)
-    const lerpSpeed = status === "completed" ? 0.005 : 0.1;
+    // Use faster lerp during ignition for snap, slower for supernova
+    let lerpSpeed = 0.1;
+    if (status === "completed") lerpSpeed = 0.005;
+    if (status === "running" && flashTime.current < 2.0) lerpSpeed = 0.2;
+
     meshRef.current.scale.lerp(
       new THREE.Vector3(scale, scale, scale),
       lerpSpeed
@@ -68,8 +105,15 @@ export default function Sun() {
 
     // Lerp Color if material exists
     if (meshRef.current.material instanceof THREE.MeshBasicMaterial) {
-      meshRef.current.material.color.lerp(targetColor, 0.05);
+      meshRef.current.material.color.lerp(targetColor, 0.1);
     }
+
+    // Light Intensity Ref (Cannot easily ref primitive, so we set light intensity in render but we want lerp?)
+    // Actually the PointLight is updated via react props. It handles its own updates?
+    // No, React Three Fiber updates props on render.
+    // I need to return specific intensity.
+    // I'll use a `targetIntensity` var to pass to return logic.
+    // Since `targetIntensity` is calculated, I'll use that.
 
     // Sync Glow with Sun Scale
     const currentScale = meshRef.current.scale.x;
@@ -79,17 +123,35 @@ export default function Sun() {
       if (status === "completed") {
         const opacity = Math.max(0, 1 - currentScale / 100);
         glowRef.current.material.opacity = opacity;
+      } else {
+        glowRef.current.material.opacity = 1;
       }
     }
+
+    // Save intensity for render return (hacky via ref or state? No, render is separate).
+    // The `useFrame` updates refs. The Return JSX is static unless state changes.
+    // PointLight props won't update from this `useFrame` unless I force update.
+    // Better: Ref the light.
+    if (lightRef.current) {
+      lightRef.current.intensity = THREE.MathUtils.lerp(
+        lightRef.current.intensity,
+        targetIntensity,
+        0.1
+      );
+      lightRef.current.distance = status === "completed" ? 500 : 100;
+    }
   });
+
+  const lightRef = useRef<THREE.PointLight>(null!);
 
   return (
     <group>
       {/* Intense Light Source */}
       <pointLight
-        intensity={status === "completed" ? 10 : 2.5}
+        ref={lightRef}
+        intensity={2.5}
         decay={0}
-        distance={status === "completed" ? 500 : 100}
+        distance={100}
         color="#ffddaa"
       />
       <ambientLight intensity={0.5} />

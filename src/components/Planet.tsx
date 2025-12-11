@@ -27,12 +27,44 @@ function usePlanetLogic(
   meshRef: React.MutableRefObject<THREE.Mesh>
 ) {
   const status = useTimerStore((state) => state.status);
+  const prevStatus = useRef(status);
+  const formationTime = useRef(100); // Start completed/default
   const { setFocusedPlanet, focusedPlanetId } = useTimerStore();
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    // Detect Start of Cycle (Idle -> Running)
+    if (prevStatus.current === "idle" && status === "running") {
+      formationTime.current = 0;
+    }
+    prevStatus.current = status;
+
+    // Increment Formation Time
+    if (status === "running" && formationTime.current < 10) {
+      formationTime.current += delta;
+    }
+
     let angle = initialAngle;
+    let currentRadius = radius;
+    let currentScale = 1;
+
+    // --- BIG BANG ANIMATION ---
+    // Slower formation: 3 seconds total?
+    // Stagger based on radius: inner planets form first.
+    // delay = radius * 0.05
+    const delay = radius * 0.05;
+    const progress = Math.max(
+      0,
+      Math.min(1, (formationTime.current - delay) / 1.5)
+    );
+    // Ease out quart
+    const ease = 1 - Math.pow(1 - progress, 4);
 
     if (status === "running") {
+      // Animate Radius out from center
+      currentRadius = radius * ease;
+      // Animate Scale up from 0
+      currentScale = ease;
+
       angle += state.clock.getElapsedTime() * speed;
     } else if (status === "idle") {
       angle += state.clock.getElapsedTime() * (speed * 0.1);
@@ -40,22 +72,29 @@ function usePlanetLogic(
       angle += state.clock.getElapsedTime() * speed * 2;
     }
 
-    const x = Math.sin(angle) * radius;
-    const z = Math.cos(angle) * radius;
+    const x = Math.sin(angle) * currentRadius;
+    const z = Math.cos(angle) * currentRadius;
 
     if (meshRef.current) {
       meshRef.current.position.set(x, 0, z);
-      meshRef.current.rotation.y += 0.01; // Increased speed for visibility
 
-      // HANDLING COLLAPSE: Scale down to 0 if completed
+      // Axis rotation
+      meshRef.current.rotation.y += 0.01;
+
+      // --- BIG COLLAPSE ---
       if (status === "completed") {
         meshRef.current.scale.lerp(new THREE.Vector3(0, 0, 0), 0.02);
       } else {
-        // Reset scale to 1 (relative to local scale prop) NOT quite right.
-        // The Mesh has `scale={1}` by default but inheriting from args?
-        // Actually in `TexturedPlanet`, args=[size, 64, 64]. Scale is usually 1.
-        // But wait, if I scale mesh to 0, I need to restore it to 1 when reset.
-        meshRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+        // Apply Big Bang Scale (forming)
+        // We lerp to the 'currentScale' which is 1.0 (or 0 during Bang buildup)
+        // But we must also update vector to match planet size?
+        // logic: mesh scale is relative to its geometry. geometry is [size].
+        // so we really just modulate 0->1.
+        const target = status === "running" ? currentScale : 1;
+        meshRef.current.scale.lerp(
+          new THREE.Vector3(target, target, target),
+          0.1
+        );
       }
     }
   });
