@@ -35,7 +35,10 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   setFocusedPlanet: (id) => set({ focusedPlanetId: id }),
   setZoomDirection: (dir) => set({ zoomDirection: dir }),
   triggerCameraReset: () =>
-    set((state) => ({ cameraResetVersion: state.cameraResetVersion + 1 })),
+    set((state) => ({
+      cameraResetVersion: state.cameraResetVersion + 1,
+      focusedPlanetId: null,
+    })),
 
   startTimer: () => {
     const { remainingTime } = get();
