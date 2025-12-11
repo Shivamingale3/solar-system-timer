@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Sphere, useTexture } from "@react-three/drei";
 import { useTimerStore } from "@/lib/store";
 import * as THREE from "three";
+import PlanetHUD from "./PlanetHUD";
 
 // Custom Shader removed as per user request (red bubble effect)
 
@@ -34,6 +35,7 @@ export default function Sun() {
   const glowRef = useRef<THREE.Sprite>(null!);
 
   const status = useTimerStore((state) => state.status);
+  const { setFocusedPlanet, focusedPlanetId } = useTimerStore();
   const sunTexture = useTexture("/textures/sun.jpg");
 
   // Generate Sprite Texture once
@@ -67,8 +69,19 @@ export default function Sun() {
       <ambientLight intensity={0.5} />
 
       {/* 1. Main Sun Body - textured */}
-      <Sphere ref={meshRef} args={[1, 64, 64]} scale={2.5}>
+      <Sphere
+        ref={meshRef}
+        args={[1, 64, 64]}
+        scale={2.5}
+        onClick={(e) => {
+          e.stopPropagation();
+          setFocusedPlanet(focusedPlanetId === "sun" ? null : "sun");
+        }}
+        onPointerOver={() => (document.body.style.cursor = "pointer")}
+        onPointerOut={() => (document.body.style.cursor = "auto")}
+      >
         <meshBasicMaterial map={sunTexture} color="#ffffff" />
+        {focusedPlanetId === "sun" && <PlanetHUD id="sun" size={2.5} />}
       </Sphere>
 
       {/* 2. Billboard Shine (Sprite) */}

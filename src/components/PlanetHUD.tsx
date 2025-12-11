@@ -12,6 +12,13 @@ interface PlanetData {
 }
 
 const INFO: Record<string, PlanetData> = {
+  sun: {
+    name: "The Sun",
+    radius: "696,340 km",
+    distance: "0 AU",
+    temp: "5,500°C",
+    desc: "The Star of our system.",
+  },
   mercury: {
     name: "Mercury",
     radius: "2,439 km",

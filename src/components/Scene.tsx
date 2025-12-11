@@ -152,7 +152,10 @@ function CameraController() {
     let lookAtPos = new THREE.Vector3(0, 0, 0); // Default Sun
     let desiredDist = 40; // Default distance for overview
 
-    if (focusedPlanetId) {
+    if (focusedPlanetId === "sun") {
+      lookAtPos.set(0, 0, 0);
+      desiredDist = 12; // Close up to Sun
+    } else if (focusedPlanetId) {
       const data = PLANET_DATA[focusedPlanetId];
       if (data) {
         let angle = data.initialAngle;
@@ -324,7 +327,9 @@ export default function Scene() {
         {/* Subtle Environment for reflections */}
         <Environment preset="city" />
         <group>
-          {(!focusedPlanetId || status === "idle") && <Sun />}
+          {(!focusedPlanetId ||
+            focusedPlanetId === "sun" ||
+            status === "idle") && <Sun />}
           {(!focusedPlanetId || status === "idle") && <AsteroidBelt />}
           <ShootingStars />
           <Supernova />
