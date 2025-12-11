@@ -98,7 +98,9 @@ export default function PlanetHUD({ id, size }: { id: string; size: number }) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="flex flex-col gap-2 w-64 p-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-2xl"
+        drag
+        dragMomentum={false}
+        className="flex flex-col gap-2 w-64 p-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-2xl cursor-grab active:cursor-grabbing pointer-events-auto"
       >
         <h2 className="text-2xl font-thin tracking-widest uppercase border-b border-white/20 pb-2 mb-1">
           {data.name}
