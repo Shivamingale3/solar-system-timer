@@ -32,5 +32,5 @@ export default function OrbitPath({ radius }: OrbitPathProps) {
     })
   );
 
-  return <primitive object={line} rotation={[-Math.PI / 2, 0, 0]} />;
+  return <primitive object={line} />;
 }
