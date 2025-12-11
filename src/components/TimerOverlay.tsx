@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useTimerStore } from "@/lib/store";
 import { useEffect, useState } from "react";
-import { Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { Play, RotateCcw, ZoomIn, ZoomOut, Home } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import AdSpace from "./AdSpace";
@@ -33,6 +33,7 @@ export default function TimerOverlay() {
     pauseTimer,
     tick,
     setZoomDirection,
+    triggerCameraReset,
   } = useTimerStore();
 
   // Local state for inputs
@@ -150,6 +151,13 @@ export default function TimerOverlay() {
 
       {/* Manual Camera Controls */}
       <div className="absolute  bottom-8 right-8 flex flex-col gap-2 pointer-events-auto">
+        <button
+          onClick={triggerCameraReset}
+          className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full transition-all active:scale-95 mb-2"
+          aria-label="Reset View"
+        >
+          <Home size={24} />
+        </button>
         <button
           onPointerDown={() => setZoomDirection(1)}
           onPointerUp={() => setZoomDirection(0)}

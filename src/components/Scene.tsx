@@ -124,14 +124,23 @@ function CameraController() {
   const { camera, controls } = useThree() as any; // Cast to any to access controls from makeDefault
   const focusedPlanetId = useTimerStore((state) => state.focusedPlanetId);
   const status = useTimerStore((state) => state.status);
+  const cameraResetVersion = useTimerStore((state) => state.cameraResetVersion);
 
   const prevFocusRef = useRef<string | null>(null);
+  const prevResetVersionRef = useRef<number>(0);
   const transitionTimeRef = useRef<number>(0);
   const isTransitioningRef = useRef<boolean>(false);
 
   // Detect Focus Change
   if (prevFocusRef.current !== focusedPlanetId) {
     prevFocusRef.current = focusedPlanetId;
+    isTransitioningRef.current = true;
+    transitionTimeRef.current = 0;
+  }
+
+  // Detect Reset Trigger
+  if (prevResetVersionRef.current !== cameraResetVersion) {
+    prevResetVersionRef.current = cameraResetVersion;
     isTransitioningRef.current = true;
     transitionTimeRef.current = 0;
   }

@@ -9,11 +9,13 @@ interface TimerState {
   focusedPlanetId: string | null; // Planet ID
   endTime: number | null; // Target end timestamp
   zoomDirection: number; // -1 (out), 0 (none), 1 (in)
+  cameraResetVersion: number;
 
   // Actions
   setDuration: (seconds: number) => void;
   setFocusedPlanet: (id: string | null) => void;
   setZoomDirection: (dir: number) => void;
+  triggerCameraReset: () => void;
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
@@ -27,10 +29,13 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   focusedPlanetId: null,
   endTime: null,
   zoomDirection: 0,
+  cameraResetVersion: 0,
 
   setDuration: (seconds) => set({ duration: seconds, remainingTime: seconds }),
   setFocusedPlanet: (id) => set({ focusedPlanetId: id }),
   setZoomDirection: (dir) => set({ zoomDirection: dir }),
+  triggerCameraReset: () =>
+    set((state) => ({ cameraResetVersion: state.cameraResetVersion + 1 })),
 
   startTimer: () => {
     const { remainingTime } = get();
