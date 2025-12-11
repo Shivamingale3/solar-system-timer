@@ -151,8 +151,13 @@ function CameraController() {
         let speed = data.speed * 0.1;
 
         // Calculate Planet Position (Same logic as rendering loop to stay synced)
-        if (status === "running") angle += time * speed;
-        else if (status === "completed") angle += time * speed * 2;
+        if (status === "running") {
+          angle += time * speed;
+        } else if (status === "idle") {
+          angle += time * (speed * 0.1);
+        } else if (status === "completed") {
+          angle += time * speed * 2;
+        }
 
         const px = Math.sin(angle) * radius;
         const pz = Math.cos(angle) * radius;
