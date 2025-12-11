@@ -8,10 +8,9 @@ import {
   PerspectiveCamera,
   Environment,
 } from "@react-three/drei";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import * as THREE from "three";
 import { useTimerStore } from "@/lib/store";
-import { createGasGiantTexture, createRockyTexture } from "@/lib/textures";
 import Sun from "./Sun";
 import Planet from "./Planet";
 import Ring from "./Ring";
@@ -30,7 +29,7 @@ interface PlanetConfig {
   size: number;
   color: string;
   initialAngle: number;
-  textureKey?: string;
+  texturePath?: string;
   groupRotation?: [number, number, number];
   hasRing?: boolean;
   ringInner?: number;
@@ -43,9 +42,9 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     radius: 6,
     speed: 2,
     size: 0.3,
-    color: "#aaaaaa",
+    color: "#aaaaaa", // Fallback
     initialAngle: 0,
-    textureKey: "mercury",
+    texturePath: "/textures/mercury.jpg",
     groupRotation: [0, 0, Math.PI / 8],
   },
   venus: {
@@ -54,7 +53,7 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 0.5,
     color: "#eecb8b",
     initialAngle: 0,
-    textureKey: "venus",
+    texturePath: "/textures/venus.jpg",
     groupRotation: [0, 0, -Math.PI / 10],
   },
   earth: {
@@ -63,6 +62,7 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 0.5,
     color: "#22aaff",
     initialAngle: 0,
+    texturePath: "/textures/earth_day.jpg",
     groupRotation: [0, 0, 0],
   },
   mars: {
@@ -71,7 +71,7 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 0.4,
     color: "#ff4422",
     initialAngle: 0,
-    textureKey: "mars",
+    texturePath: "/textures/mars.jpg",
     groupRotation: [0, 0, Math.PI / 6],
   },
   jupiter: {
@@ -80,7 +80,7 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 1.2,
     color: "#d9b38c",
     initialAngle: 0,
-    textureKey: "jupiter",
+    texturePath: "/textures/jupiter.jpg",
     groupRotation: [0, 0, -Math.PI / 20],
   },
   saturn: {
@@ -89,12 +89,12 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 1.0,
     color: "#e3e0c0",
     initialAngle: 0,
-    textureKey: "saturn",
+    texturePath: "/textures/saturn.jpg",
     groupRotation: [0, 0, Math.PI / 15],
     hasRing: true,
     ringInner: 1.4,
     ringOuter: 2.2,
-    ringColor: "#c5c29a",
+    ringColor: "#c5c29a", // We can update this when we have a ring texture
   },
   uranus: {
     radius: 21,
@@ -102,7 +102,7 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 0.8,
     color: "#a6d9f0",
     initialAngle: 0,
-    textureKey: "uranus",
+    texturePath: "/textures/uranus.jpg",
     groupRotation: [0, 0, -Math.PI / 12],
     hasRing: true,
     ringInner: 1.0,
@@ -115,7 +115,7 @@ const PLANET_DATA: Record<string, PlanetConfig> = {
     size: 0.8,
     color: "#3355ff",
     initialAngle: 0,
-    textureKey: "neptune",
+    texturePath: "/textures/neptune.jpg",
     groupRotation: [0, 0, Math.PI / 10],
   },
 };
@@ -218,29 +218,6 @@ export default function Scene() {
   const status = useTimerStore((state) => state.status);
   const focusedPlanetId = useTimerStore((state) => state.focusedPlanetId);
 
-  // Generate Textures safely on client side
-  const [textures, setTextures] = useState<any>({});
-
-  useEffect(() => {
-    // Gas Giants
-    const jupiter = createGasGiantTexture([
-      "#d9b38c",
-      "#a67d53",
-      "#e0cda7",
-      "#704e30",
-    ]);
-    const saturn = createGasGiantTexture(["#e3e0c0", "#c5c29a", "#f0ecce"]);
-    const uranus = createGasGiantTexture(["#a6d9f0", "#8dcfe6", "#cce6f5"]);
-    const neptune = createGasGiantTexture(["#3355ff", "#2244dd", "#5577ff"]);
-
-    // Rocky Bodies
-    const mercury = createRockyTexture("#aaaaaa");
-    const venus = createRockyTexture("#eecb8b");
-    const mars = createRockyTexture("#ff4422");
-
-    setTextures({ jupiter, saturn, uranus, neptune, mercury, venus, mars });
-  }, []);
-
   return (
     <div className="absolute inset-0 bg-[#020205]">
       <Canvas
@@ -310,12 +287,7 @@ export default function Scene() {
                     color={data.color}
                     id={key}
                     initialAngle={data.initialAngle}
-                    texture={
-                      data.textureKey ? textures[data.textureKey] : undefined
-                    }
-                    texturePath={
-                      key === "earth" ? "/textures/earth_day.jpg" : undefined
-                    }
+                    texturePath={data.texturePath}
                     normalPath={
                       key === "earth" ? "/textures/earth_normal.jpg" : undefined
                     }
