@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useTimerStore } from "@/lib/store";
 import { useEffect, useState } from "react";
-import { Play, RotateCcw } from "lucide-react";
+import { Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import AdSpace from "./AdSpace";
@@ -32,6 +32,7 @@ export default function TimerOverlay() {
     resetTimer,
     pauseTimer,
     tick,
+    setZoomDirection,
   } = useTimerStore();
 
   // Local state for inputs
@@ -146,6 +147,28 @@ export default function TimerOverlay() {
 
       {/* Ad Space */}
       <AdSpace />
+
+      {/* Manual Camera Controls */}
+      <div className="absolute  bottom-8 right-8 flex flex-col gap-2 pointer-events-auto">
+        <button
+          onPointerDown={() => setZoomDirection(1)}
+          onPointerUp={() => setZoomDirection(0)}
+          onPointerLeave={() => setZoomDirection(0)}
+          className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full transition-all active:scale-95"
+          aria-label="Zoom In"
+        >
+          <ZoomIn size={24} />
+        </button>
+        <button
+          onPointerDown={() => setZoomDirection(-1)}
+          onPointerUp={() => setZoomDirection(0)}
+          onPointerLeave={() => setZoomDirection(0)}
+          className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full transition-all active:scale-95"
+          aria-label="Zoom Out"
+        >
+          <ZoomOut size={24} />
+        </button>
+      </div>
     </div>
   );
 }

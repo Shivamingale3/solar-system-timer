@@ -227,6 +227,38 @@ function CameraController() {
         isTransitioningRef.current = false;
       }
     }
+
+    // 4. Manual Zoom Logic
+    const zoomDirection = useTimerStore.getState().zoomDirection;
+    if (zoomDirection !== 0 && !isTransitioningRef.current && controls) {
+      // Zoom Speed
+      const zoomSpeed = 20 * delta;
+
+      // Vector from Target (controls.target) to Camera
+      // controls.target should be synced with lookAtPos by step #2
+      const direction = new THREE.Vector3().subVectors(
+        camera.position,
+        controls.target
+      );
+      const dist = direction.length();
+      direction.normalize();
+
+      // Move camera
+      // If direction is 1 (Zoom In), we move AGAINST the vector (sub)
+      // If direction is -1 (Zoom Out), we move WITH the vector (add)
+      // Note: "Zoom In" usually means getting closer -> decreasing distance
+
+      let newDist = dist;
+      if (zoomDirection === 1) {
+        newDist = Math.max(2, dist - zoomSpeed); // Min distance check
+      } else {
+        newDist = Math.min(100, dist + zoomSpeed); // Max distance check
+      }
+
+      // Apply new position
+      const moveVec = direction.multiplyScalar(newDist);
+      camera.position.copy(controls.target).add(moveVec);
+    }
   });
 
   return null;
